@@ -1,93 +1,125 @@
-# findash-ieee
+![Financial Dashboard Screenshot](https://github.com/user-attachments/assets/db447bb8-5e05-4e7a-ab55-350a68b69f2c)
+# 💰 MyBudget: Financial Dashboard
+## ✨ Overview
 
-## Technologies
+**MyBudget** is an example financial dashboard application designed to help users track their transactions and visualize their financial data through various interactive charts. It serves as a comprehensive case study demonstrating a full-stack implementation using **React** for the front-end and **Node.js/Express** for the back-end.
 
-- List your tech stack here (e.g., React, Node.js, PostgreSQL, etc.)
+This project was developed as a hands-on learning experience, focusing on database structure, secure authentication, and data visualization.
 
-* React
-* Vite
-* Tailwind
-* Toastify
-* Axios
-* Jsonwebtoken
-* Node.js
-* Knex
-* Express
-* Highcharts
+## 🛠️ Technologies
 
-## Features
+- React
+- Vite
+- Tailwind
+- Toastify
+- Axios
+- Jsonwebtoken
+- Node.js
+- Knex
+- Express
+- Highcharts
 
-- Creates a local database for users and transactions;
-- Profile picture uses a folder to copy paste your image in DB side, the DB can then read the file location and show.
-- Show your transactions in a pizza, bar or line graph using Highcharts;
+## 🚀 Key Features
 
-## What Users Can Do
+### User Management & Security
 
-- Create, login and delete an account;
-- Change their: username, profile picture, password;
-- Create, delete and change their transactions;
+- **Secure Authentication:** Users can **create**, **login**, and **delete** their accounts.
+- **Profile Management:** Users can update their **username**, **password**, and **profile picture**.
 
-## Creation Process
+### Financial Tracking & Data
 
-Describe the development journey and key milestones:
+- **Transaction CRUD:** Users can **create**, **read**, **update**, and **delete** their financial transactions (e.g., adding or subtracting cash from different payment methods like credit card, emergency account, etc.).
+- **Local Database:** Sets up a local database for persistent storage of user and transaction data.
+- **Profile Picture Handling:** A unique approach where the system uses a folder to store the image, with the database saving the file location for retrieval and display.
+
+### Data Visualization & Filtering
+
+- **Dynamic Charting:** Visualize transactions using **pie**, **bar**, or **line** graphs powered by **Highcharts**.
+- **Advanced Filtering:** Users can customize the displayed data and graphs using **monthly**, **weekly**, and **categories** filters to gain detailed financial insights.
+
+## 🛠️ Installation and Setup
+
+### Prerequisites
+
+To run this project locally, you will need:
+
+- **Node.js** (version **24.11** or later)
+- A compatible SQL database manager (e.g., MySQL, PostgreSQL, DBeaver)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone [https://github.com/semdoce/findash-ieee.git](https://github.com/semdoce/findash-ieee.git)
+cd findash-ieee
+```
+
+### Step 2: Install Dependencies
+
+Install packages for both the front-end and back-end:
+
+```bash
+# Install frontend dependencies
+cd front
+npm install
+cd ../
+
+# Install backend dependencies
+cd back
+npm install
+cd ../
+```
+
+### Step 3: Configure Environment Variables
+
+Navigate to the back folder and create a file named .env by copying the contents of .env.example. You must replace the placeholder values with your actual database credentials.
+
+| Variable          | Example Value  | Description                                                                                                      |
+| :---------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
+| **DB_CONNECTION** | mysql          | The database driver Knex will use (e.g., mysql, mysql2, postgres, sqlite3).                                      |
+| **DB_NAME**       | findashieee    | The name of your database instance.                                                                              |
+| **SERVER_HOST**   | localhost      | The host for the Express server.                                                                                 |
+| **SERVER_PORT**   | 3000           | The port for the Express server.                                                                                 |
+| **DB_PORT**       | 3306           | The port for your database.                                                                                      |
+| **DB_USER**       | root           | Your database user (e.g., root).                                                                                 |
+| **DB_PASSWORD**   | 1234           | Your database password.                                                                                          |
+| **JWT_KEY**       | secret_key_jwt | A secret key for JWT encryption/decryption (can be read as a "paywall checker"). Must be a strong, unique value. |
+
+### Step 4: Run the Application
+
+Start the back-end server first, then the front-end development server.
+
+```bash
+# Start the backend server
+cd back
+npm run start
+```
+
+```bash
+# In a new terminal, start the frontend
+cd front
+npm run dev
+```
+
+The application should now be accessible in your web browser, typically at http://localhost:5173 (Vite's default port).
+
+## 💡 Creation Process
+
+<img width="1232" height="722" alt="image" src="https://github.com/user-attachments/assets/e1cd7649-28bf-444c-a2b3-f7c9965fcee2" />
 
 - When we started this project we didnt knew how it would turn out. It was my very first big project, so I was about to approach it like anything I did before: just learning the tools I had to use and then coding. Well, it didnt turn out that way, besides I had to learn how to structure a database first, and learn how to work with a team. Took some months, many people helped us a lot with this, telling us new things about data security and design.
 
 - The principal idea was to integrate React (with Vite) and Node.js to create a program that can help you with finances. Creating transactions of adding cash or subtracting it from more than one way of payment (credit card, debit card, emergency account, etc).
 
-- Testing and refinement
-
-## What I Learned
+## 🧠 What I Learned
 
 - wip, its a plenty of things.
 -
 -
 
-## How It Can Be Improved
+## 🔮 How It Can Be Improved
 
 - Group finances workflow (multiple people interaction).
-- CRUD Category management
-- Change the filtering method from front to backend (Is better to work with databases on filtering data situation.)
+- Allowing users to **create**, **update**, and **delete** their own transaction **categories** for better data organization.
+- Shifting the filtering logic from the front-end to the back-end to optimize performance and work more efficiently with large datasets.
 - Bug testing
 - Reducing the ai slopped code (that will be a pain on my vacation...)
-
-## How to Run the Project
-
-### Prerequisites
-
-- To run it, you'll need Node.js 24.11 or later.
-
-### Installation
-
-```bash
-git clone https://github.com/semdoce/findash-ieee.git
-cd findash-ieee
-cd front
-npm install
-cd ../back
-npm install
-```
-
-### Env Example
-
-- Before you run the project, you'll need to set the env (environmental variables). Onto back folder, there's a .env.example file with these variables:
-
-```
-DB_CONNECTION -> This is the database you use. Knex have to understand it. (For ex.: mysql, mysql2, postgres)
-DB_NAME -> That's the database name (For ex.: findashieee)
-SERVER_HOST -> Just set to localhost
-SERVER_PORT -> Just set to 3000
-DB_PORT -> Just set to 3306
-DB_USER -> Your user on your database manager (For ex.: root)
-DB_PASSWORD -> Your database manager password (For ex.: 1234)
-JWT_KEY -> This has to be any key you want, the application will use it to encrypt and decrypt the html headers (can say its a paywall). (For ex.: secret_key_jwt)
-```
-
-### Running
-
-```bash
-cd back
-npm run start
-cd ../front
-npm run dev
-```
