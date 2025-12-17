@@ -49,8 +49,8 @@ To run this project locally, you will need:
 ### Step 1: Clone the Repository
 
 ```bash
-git clone [https://github.com/semdoce/findash-ieee.git](https://github.com/semdoce/findash-ieee.git)
-cd findash-ieee
+git clone https://github.com/semdoce/mybudget.git
+cd mybudget
 ```
 
 ### Step 2: Install Dependencies
