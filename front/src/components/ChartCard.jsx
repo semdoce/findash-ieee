@@ -141,7 +141,13 @@ export default function ChartCard({
           xAxis: {
             categories: rawData?.categories || [],
             crosshair: true,
-            labels: { style: { color: '#6B7280'} }
+            labels: {
+              rotation: -45, // Inclina o texto levemente
+              style: {
+                fontSize: '12px',
+                color: '#6B7280'
+              }
+            }
           },
           yAxis: { min: 0, title: { text: '' }, labels: { style: { color: '#6B7280'} }, gridLineColor: '#E5E7EB' },
           tooltip: { shared: true, valuePrefix: 'R$ ' },

@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from "react";
-import { getTodasTransacoes } from "../services/api";
+//import {getTodasTransacoes} from "../services/api";
+import { getMensal, getCategoria, getSemanal, getHistorico } from "../services/api";
 import { UserContext } from "../context/UserContext";
 import ChartCard from "../components/ChartCard";
 import { toast } from "react-toastify";
@@ -8,153 +9,78 @@ import "../style/Dashboard.css";
 
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
-const processarDadosMensais = (transacoesBrutas) => {
-  if (!Array.isArray(transacoesBrutas)) return { categories: [], entradas: [], saidas: [] };
-
-  const agregadorMensal = {};
-
-  transacoesBrutas.forEach(transacao => {
-    if (!transacao.data_transacao) return;
-    
-    const valor = parseFloat(transacao.valor) || 0;
-    const tipo = transacao.tipo_de_transacao;
-
-    const mesAno = transacao.data_transacao.substring(0, 7); //pega o ano e o mes do banco de dados (YYYY-MM)
-    
-    //cria o objeto do mês se não existir
-    if (!agregadorMensal[mesAno]) {
-      agregadorMensal[mesAno] = { entradas: 0, saidas: 0 };
-    }
-    //soma todas as entradas e saídas do mês
-    if (tipo === 'Receita') {
-      agregadorMensal[mesAno].entradas += valor;
-    } else {
-      agregadorMensal[mesAno].saidas += valor;
-    }
-  });
-
-  const mesesOrdenados = Object.keys(agregadorMensal).sort();
+const processarDadosMensais = (dadosDoBanco) => {
+  if (!Array.isArray(dadosDoBanco)) return { categories: [], entradas: [], saidas: [] };
   const categories = [];
   const entradas = [];
   const saidas = [];
-  // monta os arrays organizados para o highcharts  
-  mesesOrdenados.forEach(mesAno => {
-    const mesIndex = parseInt(mesAno.split('-')[1], 10) - 1; 
+  dadosDoBanco.forEach(item => {
+    const [ano, mes] = item.mes_ano.split('-');
+    const mesIndex = parseInt(mes, 10) - 1;
+
     if (MESES[mesIndex]) {
-      //se o mês for válido, adiciona os dados no array
-        categories.push(MESES[mesIndex]); 
-        entradas.push(agregadorMensal[mesAno].entradas);
-        saidas.push(agregadorMensal[mesAno].saidas);
+      categories.push(MESES[mesIndex]);
+      entradas.push(parseFloat(item.entradas));
+      saidas.push(parseFloat(item.saidas));
     }
   });
-
   return { categories, entradas, saidas };
 };
 
-const processarDadosPizza = (transacoesBrutas) => {
-  if (!Array.isArray(transacoesBrutas)) return [];
-  
-  const gastosPorCategoria = {};
-
-  transacoesBrutas.forEach(transacao => {
-    if (transacao.tipo_de_transacao !== 'Receita') {
-      const categoria = transacao.categoria || "Outros";
-      const valor = parseFloat(transacao.valor) || 0;
-
-      if (gastosPorCategoria[categoria]) {
-        gastosPorCategoria[categoria] += valor;
-      } else {
-        gastosPorCategoria[categoria] = valor;
-      }
-    }
-  });
-
-  return Object.entries(gastosPorCategoria).map(([nome, valor]) => ({
-    name: nome,
-    y: valor
-  }));
+const processarDadosCategoria = (dadosDoBanco) => {
+  if (!Array.isArray(dadosDoBanco)) return [];
+  return dadosDoBanco; 
 };
-const processarDadosSemanais = (transacoesBrutas) => {
-  if (!Array.isArray(transacoesBrutas)) return { categories: [], entradas: [], saidas: [] };
-  const agregadorSemanal = {};
-  const dataLimite = new Date();
-  dataLimite.setDate(dataLimite.getDate() - 70); //pega os 70 dias anteriores (10 semanas)
 
-  transacoesBrutas.forEach(transacao => {
-    if (!transacao.data_transacao) return;
-    const dataLimpa = transacao.data_transacao.substring(0, 10);
-    const [ano, mes, dia] = dataLimpa.split('-').map(Number);
-    
-    const dataTransacao = new Date(ano, mes - 1, dia);
-
-    if (dataTransacao < dataLimite) return;
-
-    const valor = parseFloat(transacao.valor) || 0;
-    const tipo = transacao.tipo_de_transacao;
-
-    const diaDaSemana = dataTransacao.getDay(); 
-    const inicioDaSemana = new Date(dataTransacao);
-    inicioDaSemana.setDate(dataTransacao.getDate() - diaDaSemana);
-
-    const chaveSemana = inicioDaSemana.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-
-    if (!agregadorSemanal[chaveSemana]) {
-      agregadorSemanal[chaveSemana] = { 
-          entradas: 0, 
-          saidas: 0, 
-          timestamp: inicioDaSemana.getTime() 
-      };
-    }
-
-    if (tipo === 'Receita') {
-      agregadorSemanal[chaveSemana].entradas += valor;
-    } else {
-      agregadorSemanal[chaveSemana].saidas += valor;
-    }
+const processarDadosSemanais = (dadosDoBanco) => {
+  if (!Array.isArray(dadosDoBanco)) return { categories: [], entradas: [], saidas: [] };
+  const categories = [];
+  const entradas = [];
+  const saidas = [];
+  dadosDoBanco.forEach(item => {
+    categories.push(item.semana_inicio);
+    entradas.push(parseFloat(item.entradas)); // parseFloat por segurança
+    saidas.push(parseFloat(item.saidas));
   });
-
-  const semanasOrdenadas = Object.keys(agregadorSemanal).sort((a, b) => {
-      return agregadorSemanal[a].timestamp - agregadorSemanal[b].timestamp;
-  });
-
-  const resultado = {
-    categories: semanasOrdenadas, 
-    entradas: semanasOrdenadas.map(k => agregadorSemanal[k].entradas),
-    saidas: semanasOrdenadas.map(k => agregadorSemanal[k].saidas)
-  };
-  
-  return resultado;
-};
+  return { categories, entradas, saidas };
+}
 
 function DashboardHome() {
   const { user } = useContext(UserContext);
   const userId = user?.id;
-
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
     pizza: [],
     barras: { categories: [], entradas: [], saidas: [] },
     historico: [],
   });
-  
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!userId) { 
           return; 
       }
-      
       setLoading(true); 
 
       try {
-        const response = await getTodasTransacoes(userId);
-        const transacoesBrutas = response?.data?.message || [];
-        const dadosMensaisFormatados = processarDadosMensais(transacoesBrutas);
-        const dadosPizzaFormatados = processarDadosPizza(transacoesBrutas);
-        const dadosSemanaisFormatados = processarDadosSemanais(transacoesBrutas);
-        const dadosHistorico = transacoesBrutas.slice(transacoesBrutas.length - 5).reverse(); //pega as 5 últimas transações
-
+        //const response = await getTodasTransacoes(userId);
+        /*const responseMensal = await getMensal(userId);
+        const responseCategoria = await getCategoria(userId);
+        const responseSemanal = await getSemanal(userId);
+        */
+        const [responseMensal, responseCategoria, responseSemanal, responseHistorico] = await Promise.all([
+          getMensal(userId),
+          getCategoria(userId),
+          getSemanal(userId),
+          getHistorico(userId)
+        ]);
+        //const transacoesBrutas = response?.data?.message || [];
+        const dadosMensaisFormatados = processarDadosMensais(responseMensal.data.message);
+        const dadosCategoriaFormatados = processarDadosCategoria(responseCategoria.data.message);
+        const dadosSemanaisFormatados = processarDadosSemanais(responseSemanal.data.message);
+        const dadosHistorico = responseHistorico.data.message;
+        console.log(dadosHistorico);
         setDashboardData({
-          pizza: dadosPizzaFormatados,
+          pizza: dadosCategoriaFormatados,
           barras: dadosMensaisFormatados,
           semanal: dadosSemanaisFormatados,
           historico: dadosHistorico,

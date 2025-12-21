@@ -1,4 +1,5 @@
 const knex = require("../database/export");
+const { get } = require("../routes/transactionRoutes");
 
 async function getAllTransactions(id) {
   const transactions = await knex("transacao")
@@ -142,6 +143,7 @@ async function updateTransaction(idTransacao, updatedData, idAuth) {
   return newTransaction;
 }
 
+/* this piece of code isnt used anywhere else and never will be
 async function getAggregatedDashboardData(userId) {
     // 1. DADOS DO GRÁFICO DE PIZZA (Saídas por Categoria)
     // Agrupa por 'categoria' e soma o 'valor' apenas para transações de 'despesa'
@@ -185,13 +187,95 @@ async function getAggregatedDashboardData(userId) {
         mensal: monthlyData,
         historico: historyData,
     };
+}*/
+
+/* this piece of code isnt used anywhere else yet
+async function filterByRange(userId, startDate, endDate, type) {
+  const filteredData = await knex("transacao")
+    .select("valor", "tipo_de_transacao", "descricao", "data_transacao", "categoria")
+    .where({ id_do_usuario: userId, tipo_de_transacao: type })
+    .whereBetween("data_transacao", [startDate, endDate])
+    .orderBy("data_transacao", "desc");
+
+  return filteredData;
+}*/
+async function getMensal(userId) { //Gasto por mês
+    const dados = await knex('transacao')
+      .select([
+        knex.raw("DATE_FORMAT(data_transacao, '%Y-%m') as mes_ano"),
+        knex.raw("SUM(CASE WHEN tipo_de_transacao = 'Receita' THEN valor ELSE 0 END) as entradas"),
+        knex.raw("SUM(CASE WHEN tipo_de_transacao != 'Receita' THEN valor ELSE 0 END) as saidas")
+      ])
+      .where('id_do_usuario', userId)
+      .whereNotNull('data_transacao')
+      .groupByRaw("DATE_FORMAT(data_transacao, '%Y-%m')")
+      .orderBy('mes_ano', 'asc');
+
+    if(dados.length === 0 || !dados){
+      throw new Error("Nenhum dado mensal encontrado para este usuário.");
+    }
+    return dados.map(obj => ({ 
+      mes_ano: obj.mes_ano, 
+      entradas: parseFloat(obj.entradas), 
+      saidas: parseFloat(obj.saidas) 
+    }));
+};
+async function getCategoria(userId) { //Gasto por categoria
+  const categorias = await knex("transacao")
+    .select("categoria as name")
+    .sum("valor as y")
+    .where("id_do_usuario", userId)
+    .whereNot("tipo_de_transacao", "Receita")
+    .groupBy("categoria")
+    .orderBy("y", "desc");
+
+  if (categorias.length === 0) {
+    throw new Error("Nenhum dado de categoria encontrado para este usuário.");
+  }
+  return categorias.map(obj => ({ name: obj.name, y: parseFloat(obj.y) }));
+}
+
+async function getSemanal(userId) { //Gasto por semana
+  const dados = await knex('transacao')
+    .select([
+      knex.raw("DATE_FORMAT(DATE_SUB(data_transacao, INTERVAL WEEKDAY(data_transacao) DAY), '%d/%m') as semana_inicio"), //date_sub(data, subtrai x dias). Nesse caso, pega a segunda da semana, pois subtrai do dia atual o número do dia da semana (0-6)
+      knex.raw("SUM(CASE WHEN tipo_de_transacao = 'Receita' THEN valor ELSE 0 END) as entradas"),
+      knex.raw("SUM(CASE WHEN tipo_de_transacao != 'Receita' THEN valor ELSE 0 END) as saidas")
+    ])
+    .where('id_do_usuario', userId)
+    .groupByRaw("DATE_FORMAT(DATE_SUB(data_transacao, INTERVAL WEEKDAY(data_transacao) DAY), '%d/%m')")
+    .orderBy('semana_inicio', 'asc');
+
+  if(dados.length === 0 || !dados){
+    throw new Error("Nenhum dado semanal encontrado para este usuário.");
+  }
+  return dados.map(obj => ({
+    semana_inicio: obj.semana_inicio, 
+    entradas: parseFloat(obj.entradas), 
+    saidas: parseFloat(obj.saidas) 
+  }));
+}
+
+async function getHistorico(userId) {
+  const historico = await knex("transacao")
+    .select('categoria', 'descricao', 'valor', 'tipo_de_transacao')
+    .where('id_do_usuario', userId)
+    .orderBy('data_transacao', 'desc')
+    .limit(5);
+
+  return historico;
 }
 
 module.exports = {
   getAllTransactions,
   getTransaction,
-  getAggregatedDashboardData,
+//  getAggregatedDashboardData,
   createTransaction,
   deleteTransaction,
   updateTransaction,
+//  filterByRange,
+  getMensal,
+  getCategoria,
+  getSemanal,
+  getHistorico
 };

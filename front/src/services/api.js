@@ -30,6 +30,17 @@ export const deleteUser = (id) => api.delete(`/deletar/usuario/${id}`);
 export const getTodasTransacoes = (userId) => {
   return api.get(`/read/all-transactions/${userId}`); 
 };
-
+export const getMensal = (userId) => {
+  return api.get(`/read/mensal/${userId}`); 
+};
+export const getCategoria = (userId) => {
+  return api.get(`/read/categoria/${userId}`); 
+};
+export const getSemanal = (userId) => {
+  return api.get(`/read/semanal/${userId}`); 
+}
+export const getHistorico = (userId) => {
+  return api.get(`/read/historico/${userId}`); 
+}
 export const backendURL = apiUrl;
 export default api;
